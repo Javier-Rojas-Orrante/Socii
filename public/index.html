@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Socii Push-to-Stream MVP</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-card">
+        <p class="eyebrow">Socii MVP</p>
+        <h1>Live Push-to-Stream</h1>
+        <p class="hero-copy">
+          Join the same room on Mac and iPhone, keep the audio connection alive, and only stream while push-to-talk is held.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="join-grid">
+          <label class="field">
+            <span>Room</span>
+            <input id="room-input" type="text" maxlength="64" autocomplete="off" placeholder="family-lab">
+          </label>
+
+          <label class="field">
+            <span>Role</span>
+            <select id="role-select">
+              <option value="mac">Mac</option>
+              <option value="iphone">iPhone</option>
+            </select>
+          </label>
+        </div>
+
+        <button id="join-button" class="primary-button">Join Room</button>
+
+        <div class="status-grid">
+          <article class="status-card">
+            <span class="status-label">Connection</span>
+            <strong id="connection-status">Disconnected</strong>
+          </article>
+          <article class="status-card">
+            <span class="status-label">Speaking</span>
+            <strong id="speaking-status">Idle</strong>
+          </article>
+        </div>
+
+        <button id="ptt-button" class="ptt-button" disabled>
+          Hold to Talk
+        </button>
+
+        <p id="status-message" class="status-message">
+          Enter a room, choose a role, and join to start the live connection.
+        </p>
+
+        <audio id="remote-audio" autoplay playsinline></audio>
+      </section>
+
+      <section class="panel debug-panel">
+        <div class="panel-header">
+          <h2>Debug State</h2>
+          <button id="resume-audio-button" class="ghost-button" type="button">Resume Audio</button>
+        </div>
+        <dl id="debug-state" class="debug-grid"></dl>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
