@@ -4,7 +4,7 @@ The Dual Socii Reflection System is an AI-powered relationship-support layer whe
 
 The core idea is that each partner has their own AI agent. This AI agent is not a replacement for the partner, a therapist, or a judge. It is a private reflection assistant that uses context, memory, and language understanding to help the user understand what they feel and how to express it better.
 
-Each partner first talks privately to their own Socii. The AI listens to the user's raw thoughts, emotional confusion, unfinished ideas, or late-night reflections. It then helps organize that input into clearer emotional structure.
+Each partner first talks privately to their own Socii. The AI listens to the user's raw thoughts, emotional confusion, unfinished ideas, or late-night reflections. It then helps organize that input into clearer emotional structure. These AI agents can talk to each other can argument.
 
 The AI can identify:
 
