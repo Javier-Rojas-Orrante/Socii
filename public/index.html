@@ -3,63 +3,122 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Socii Push-to-Stream MVP</title>
+    <title>Socii MK1</title>
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
     <main class="app-shell">
       <section class="hero-card">
-        <p class="eyebrow">Socii MVP</p>
-        <h1>Live Push-to-Stream</h1>
+        <p class="eyebrow">Socii</p>
+        <h1>Socii MK1</h1>
         <p class="hero-copy">
-          Join the same room on Mac and iPhone, keep the audio connection alive, and only stream while push-to-talk is held.
+          A browser simulation of a soft, ambient Socii link: glowing presence first, one shared orb for intent, and a live open call after acknowledgement.
         </p>
       </section>
 
       <section class="panel">
         <div class="join-grid">
           <label class="field">
-            <span>Room</span>
-            <input id="room-input" type="text" maxlength="64" autocomplete="off" placeholder="family-lab">
-          </label>
-
-          <label class="field">
             <span>Role</span>
             <select id="role-select">
-              <option value="mac">Mac</option>
-              <option value="iphone">iPhone</option>
+              <option value="javi">Javi</option>
+              <option value="sofi">Sofi</option>
             </select>
           </label>
         </div>
 
-        <button id="join-button" class="primary-button">Join Room</button>
+        <button id="join-button" class="primary-button">Join Socii</button>
 
-        <div class="status-grid">
-          <article class="status-card">
-            <span class="status-label">Connection</span>
-            <strong id="connection-status">Disconnected</strong>
-          </article>
-          <article class="status-card">
-            <span class="status-label">Speaking</span>
-            <strong id="speaking-status">Idle</strong>
-          </article>
+        <div class="utility-row">
+          <button id="silent-mode-button" class="secondary-button" type="button" disabled>
+            Turn Silent Mode On
+          </button>
+          <button id="resume-audio-button" class="ghost-button" type="button">Resume Audio</button>
         </div>
 
-        <button id="ptt-button" class="ptt-button" disabled>
-          Hold to Talk
-        </button>
-
         <p id="status-message" class="status-message">
-          Enter a room, choose a role, and join to start the live connection.
+          Choose Javi or Sofi, then connect to wake the Socii link.
         </p>
 
         <audio id="remote-audio" autoplay playsinline></audio>
       </section>
 
+      <section class="panel presence-panel">
+        <button id="partner-orb-button" class="partner-orb-button" type="button" disabled aria-label="Socii orb">
+          <div id="partner-orb" class="partner-orb orb-offline"></div>
+        </button>
+        <div class="orb-copy">
+          <p id="presence-summary" class="panel-copy">No pending talk request.</p>
+          <p id="partner-status-label" class="partner-status-label">Offline</p>
+          <p id="partner-status-description" class="partner-status-description">
+            Once both sides connect, the orb starts carrying your shared presence.
+          </p>
+          <p id="partner-meta" class="partner-meta">Tap the orb to send, acknowledge, cancel, or end a call depending on its state.</p>
+        </div>
+        <div class="indicator-row orb-indicators">
+          <span id="local-silent-indicator" class="indicator-pill">Local: available</span>
+          <span id="peer-silent-indicator" class="indicator-pill">Socii: offline</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <div>
+            <h2>Small Notes</h2>
+            <p class="panel-copy">Leave a small passive trace with text, or open the kaomoji tray when you want a softer signal.</p>
+          </div>
+          <button id="toggle-kaomoji-button" class="ghost-button" type="button" disabled>Show Kaomojis</button>
+        </div>
+
+        <div id="kaomoji-row" class="kaomoji-row is-hidden">
+          <span class="status-label">Kaomoji</span>
+          <div class="kaomoji-grid">
+            <button class="kaomoji-chip" type="button" data-kaomoji="(◕‿◕)">Add (◕‿◕)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(˘▾˘)">Add (˘▾˘)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(˶ˆᗜˆ˵)">Add (˶ˆᗜˆ˵)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(っ˘ω˘ς )">Add (っ˘ω˘ς )</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(｡•̀ᴗ-)✧">Add (｡•̀ᴗ-)✧</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(╥﹏╥)">Add (╥﹏╥)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="ヽ(・∀・)ﾉ">Add ヽ(・∀・)ﾉ</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(づ｡◕‿‿◕｡)づ">Add (づ｡◕‿‿◕｡)づ</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(｡･ω･｡)">Add (｡･ω･｡)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="( •⌄• ू )✧">Add ( •⌄• ू )✧</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(๑˃ᴗ˂)ﻭ">Add (๑˃ᴗ˂)ﻭ</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(￣▽￣)ノ">Add (￣▽￣)ノ</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(｡•́︿•̀｡)">Add (｡•́︿•̀｡)</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(づ￣ ³￣)づ">Add (づ￣ ³￣)づ</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="( ﾟ▽ﾟ)/">Add ( ﾟ▽ﾟ)/</button>
+            <button class="kaomoji-chip" type="button" data-kaomoji="(•‿•)">Add (•‿•)</button>
+          </div>
+        </div>
+
+        <div class="custom-note-row">
+          <label class="field field-full">
+            <span>Note</span>
+            <textarea id="custom-note-input" maxlength="280" rows="4" placeholder="Write a small thought for later, then add a kaomoji if you want."></textarea>
+          </label>
+          <button id="send-note-button" class="primary-button" type="button" disabled>Send Note</button>
+        </div>
+
+        <div class="notes-grid">
+          <article class="note-card">
+            <span class="status-label">Latest Received Note</span>
+            <strong id="latest-received-note">None yet</strong>
+            <p id="latest-received-meta" class="note-meta">Unread notes from your Socii will appear here.</p>
+            <button id="mark-note-read-button" class="ghost-button" type="button" disabled>Mark as Read</button>
+          </article>
+
+          <article class="note-card">
+            <span class="status-label">Latest Sent Note</span>
+            <strong id="latest-sent-note">None yet</strong>
+            <p id="latest-sent-meta" class="note-meta">Your latest outgoing note will appear here.</p>
+          </article>
+        </div>
+      </section>
+
       <section class="panel debug-panel">
         <div class="panel-header">
           <h2>Debug State</h2>
-          <button id="resume-audio-button" class="ghost-button" type="button">Resume Audio</button>
         </div>
         <dl id="debug-state" class="debug-grid"></dl>
       </section>
