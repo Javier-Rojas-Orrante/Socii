@@ -1,6 +1,6 @@
 # Socii
 
-Push-to-stream MVP for live half-duplex voice between a Mac browser and iPhone Safari using WebRTC for audio and WebSocket signaling for setup and floor control.
+Socii (masculine plural, singular: socius) is a Latin term primarily meaning allies, partners, comrades, or confederates.
 
 ## Requirements
 
