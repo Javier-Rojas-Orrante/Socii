@@ -2,88 +2,20 @@
 
 Socii (masculine plural, singular: socius) is a Latin term primarily meaning allies, partners, comrades, or confederates.
 
-## Requirements
+Socii is a pair of intimate companion devices designed for long-distance closeness.
 
-- Node.js 18+
-- An HTTPS tunnel for iPhone Safari microphone access during device testing
+Each Socii acts as a physical communication bridge between two partners: a soft, personal object that lets you instantly push-to-talk like a walkie-talkie, send small signals, leave good-morning messages, share drawings or notes, and feel the other person’s presence without needing to open a phone.
 
-## Run locally
+The device is not meant to replace the relationship or become a third personality. Its AI is deliberately restricted: it works more like a quiet butler than a companion. It helps carry messages, summarize thoughts, suggest sweet prompts, manage shared lists, translate emotions into small gestures, and make communication easier when distance, time zones, or daily life get in the way.
 
-1. Install dependencies:
+Socii should feel calm, non-creepy, and personal. It uses gentle lights, optional sound, and simple physical interactions to show status: available, wants to talk, message waiting, do-not-disturb, or thinking of you. The design can be screenless, use a tiny dot-matrix display, or have a simple expressive face, but the emotional core is the same: instant, low-friction connection.
 
-   ```bash
-   npm install
-   ```
+The first version focuses on:
+- Live push-to-talk communication
+- “Want to talk” signal
+- Gentle light/status feedback
+- Silent/do-not-disturb mode
+- Restricted AI as a communication assistant
+- A physical shell designed and assembled together
 
-2. Start the server:
-
-   ```bash
-   npm start
-   ```
-
-3. Open `http://localhost:3000` on the Mac for local testing.
-4. For iPhone Safari, expose the same local port through an HTTPS tunnel and open the tunnel URL on both devices.
-
-## Run on a Mac + iPhone pair
-
-1. Start the local app on your Mac:
-
-   ```bash
-   cd /Users/javier/Socii
-   npm start
-   ```
-
-2. In a second Terminal window, create an HTTPS tunnel to the local server.
-
-   Cloudflare quick tunnel:
-
-   ```bash
-   brew install cloudflared
-   cloudflared tunnel --url http://localhost:3000
-   ```
-
-   ngrok alternative:
-
-   ```bash
-   brew install ngrok/ngrok/ngrok
-   ngrok http 3000
-   ```
-
-3. Copy the generated public `https://...` URL.
-4. Open that same `https://...` URL on:
-   - the Mac browser
-   - iPhone Safari
-5. On the Mac client:
-   - enter a room name
-   - choose role `mac`
-   - click `Join Room`
-   - allow microphone access
-6. On the iPhone client:
-   - enter the same room name
-   - choose role `iphone`
-   - tap `Join Room`
-   - allow microphone access
-7. Wait for the peer connection to establish, then hold `Hold to Talk` to stream live voice.
-8. Release the button to mute immediately and release the speaking floor.
-
-### iPhone notes
-
-- Use Safari on iPhone for microphone support.
-- Do not use `http://localhost:3000` or `http://<mac-ip>:3000` on the iPhone.
-- If remote audio does not start automatically, tap `Resume Audio`.
-- Keep both the app server and the tunnel process running during the test.
-
-## MVP flow
-
-- Choose a room ID and role (`mac` or `iphone`)
-- Join the room on both devices
-- Wait for the WebRTC connection to establish
-- Hold the push-to-talk button to request the speaking floor
-- Speak only while the button is held and the floor is granted
-- Release the button to mute immediately
-
-## Notes
-
-- Audio is never recorded or stored.
-- The server only handles signaling and floor control.
-- Room and floor state are stored in memory and reset on server restart.
+Socii is not an AI friend. It is a relationship object: a small shared presence built to make two people feel closer.
