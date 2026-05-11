@@ -27,7 +27,6 @@ What is in the repo now:
 - one large orb for ambient signaling
 - want-to-talk requests
 - acknowledgement into a live open call
-- silent mode
 - short notes with optional kaomoji
 - WebSocket signaling
 - WebRTC peer-to-peer audio

@@ -1,6 +1,7 @@
 const roleSelect = document.getElementById("role-select");
 const joinButton = document.getElementById("join-button");
 const statusMessage = document.getElementById("status-message");
+const debugPanel = document.getElementById("debug-panel");
 const debugState = document.getElementById("debug-state");
 const remoteAudio = document.getElementById("remote-audio");
 const resumeAudioButton = document.getElementById("resume-audio-button");
@@ -8,20 +9,11 @@ const presenceSummary = document.getElementById("presence-summary");
 const partnerOrbButton = document.getElementById("partner-orb-button");
 const partnerOrb = document.getElementById("partner-orb");
 const partnerStatusLabel = document.getElementById("partner-status-label");
-const partnerStatusDescription = document.getElementById("partner-status-description");
-const partnerMeta = document.getElementById("partner-meta");
-const silentModeButton = document.getElementById("silent-mode-button");
-const localSilentIndicator = document.getElementById("local-silent-indicator");
-const peerSilentIndicator = document.getElementById("peer-silent-indicator");
-const customNoteInput = document.getElementById("custom-note-input");
+const noteComposerDisplay = document.getElementById("note-composer-display");
+const clearNoteButton = document.getElementById("clear-note-button");
 const sendNoteButton = document.getElementById("send-note-button");
-const toggleKaomojiButton = document.getElementById("toggle-kaomoji-button");
 const kaomojiRow = document.getElementById("kaomoji-row");
-const latestReceivedNote = document.getElementById("latest-received-note");
 const latestReceivedMeta = document.getElementById("latest-received-meta");
-const latestSentNote = document.getElementById("latest-sent-note");
-const latestSentMeta = document.getElementById("latest-sent-meta");
-const markNoteReadButton = document.getElementById("mark-note-read-button");
 const kaomojiButtons = [...document.querySelectorAll(".kaomoji-chip")];
 
 const DEFAULT_SESSION_ID = "socii-default";
@@ -38,7 +30,6 @@ const ICE_SERVERS = {
 function createPresenceState() {
   return {
     online: false,
-    silentMode: false,
     wantsToTalk: false,
     messageWaiting: false,
     speaking: false,
@@ -77,7 +68,7 @@ const state = {
     active: false,
     activatedAt: null,
   },
-  kaomojiTrayOpen: false,
+  noteDraft: "",
   latestReceivedNote: null,
   latestSentNote: null,
   lastAcknowledgement: null,
@@ -211,42 +202,36 @@ function getPresenceSummary() {
   const peerName = getSociiName();
 
   if (state.peerPresence.wantsToTalk) {
-    return `Tap the orb to acknowledge ${peerName} and open the call.`;
+    return `${peerName} wants to talk`;
   }
 
   if (state.callMode.active) {
-    return "Open call is live. Tap the orb to end it.";
+    return "open call live";
   }
 
   if (state.localPresence.wantsToTalk) {
-    return "You already sent a talk signal. Tap the orb again to cancel it.";
+    return "request sent";
   }
 
   if (getUnreadNote()) {
-    return "You have an unread note waiting.";
+    return "note waiting";
   }
 
   if (hasRecentAcknowledgement()) {
     return state.lastAcknowledgement.sourceRole === state.role
-      ? "You acknowledged the talk request."
-      : "Your Socii acknowledged your talk request.";
-  }
-
-  if (state.localPresence.silentMode) {
-    return "Silent mode is on. Visual signals still continue.";
+      ? "acknowledged"
+      : "acknowledged by Socii";
   }
 
   if (state.peerPresence.online) {
-    return "Tap the orb when you want to talk.";
+    return "tap orb to talk";
   }
 
-  return "Connect both sides to wake the orb.";
+  return "offline";
 }
 
 function getPartnerStatusModel() {
-  const peerName = getSociiName("Socii");
   const unreadNote = getUnreadNote();
-  const peerSilent = state.peerPresence.silentMode;
   const recentAck = hasRecentAcknowledgement();
   const partnerConnected = isPeerConnectionReady();
 
@@ -254,10 +239,6 @@ function getPartnerStatusModel() {
     return {
       key: "offline",
       label: "Offline",
-      description: `${peerName} is not connected right now.`,
-      meta: unreadNote && state.latestReceivedNote
-        ? `Last note still waiting: "${state.latestReceivedNote.content}"`
-        : "The orb stays quiet until your Socii connects.",
       cssClass: "orb-offline",
     };
   }
@@ -266,8 +247,6 @@ function getPartnerStatusModel() {
     return {
       key: "open_call",
       label: "Open Call",
-      description: `You and ${peerName} are in a live two-way call.`,
-      meta: "Tap the orb to end the call and return to ambient mode.",
       cssClass: "orb-open-call",
     };
   }
@@ -276,10 +255,6 @@ function getPartnerStatusModel() {
     return {
       key: "speaking",
       label: "Speaking",
-      description: `${peerName} currently holds the live audio floor.`,
-      meta: peerSilent
-        ? `${peerName} is also in silent mode for passive notifications.`
-        : "The orb brightens while your Socii is actively speaking.",
       cssClass: "orb-speaking",
     };
   }
@@ -288,8 +263,6 @@ function getPartnerStatusModel() {
     return {
       key: "peer_wants_to_talk",
       label: "Wants to Talk",
-      description: `${peerName} sent a gentle request to talk when you can.`,
-      meta: "Tap the orb to acknowledge and go straight into the call.",
       cssClass: "orb-peer-wants-to-talk",
     };
   }
@@ -298,10 +271,6 @@ function getPartnerStatusModel() {
     return {
       key: "message_waiting",
       label: "Message Waiting",
-      description: `${peerName} left you a note: "${state.latestReceivedNote.content}"`,
-      meta: peerSilent
-        ? `${peerName} is also in silent mode, so the signal stays gentle.`
-        : "Mark it as read when you have seen it.",
       cssClass: "orb-message-waiting",
     };
   }
@@ -310,22 +279,7 @@ function getPartnerStatusModel() {
     return {
       key: "acknowledged",
       label: "Acknowledged",
-      description:
-        state.lastAcknowledgement.sourceRole === state.role
-          ? "You acknowledged your Socii's talk request."
-          : `${peerName} acknowledged your talk request.`,
-      meta: "The shared ambient signal has returned to idle.",
       cssClass: "orb-acknowledged",
-    };
-  }
-
-  if (peerSilent) {
-    return {
-      key: "silent",
-      label: "Silent Mode",
-      description: `${peerName} is present but prefers visual-only signals right now.`,
-      meta: "They can still acknowledge a talk request and move into the live call when ready.",
-      cssClass: "orb-silent",
     };
   }
 
@@ -333,8 +287,6 @@ function getPartnerStatusModel() {
     return {
       key: "local_wants_to_talk",
       label: "Waiting on Your Signal",
-      description: `You told ${peerName} that you want to talk when they can.`,
-      meta: "Tap the orb again if you want to cancel the signal.",
       cssClass: "orb-local-wants-to-talk",
     };
   }
@@ -343,8 +295,6 @@ function getPartnerStatusModel() {
     return {
       key: "online",
       label: "Online",
-      description: `${peerName} is here. The live audio connection is still settling.`,
-      meta: "You can still tap the orb to leave a talk signal.",
       cssClass: "orb-online",
     };
   }
@@ -352,8 +302,6 @@ function getPartnerStatusModel() {
   return {
     key: "idle",
     label: "Idle",
-    description: `${peerName} is online and available for a gentle presence exchange.`,
-    meta: "Tap the orb to tell your Socii you want to talk.",
     cssClass: "orb-idle",
   };
 }
@@ -425,8 +373,6 @@ function refreshDebugState() {
     ["Awaiting Floor", state.awaitingFloor ? "yes" : "no"],
     ["Mic Permission", state.micPermission],
     ["Local Mic Enabled", state.localMicEnabled ? "yes" : "no"],
-    ["Local Silent Mode", state.localPresence.silentMode ? "yes" : "no"],
-    ["Socii Silent Mode", state.peerPresence.silentMode ? "yes" : "no"],
     ["Local Wants To Talk", state.localPresence.wantsToTalk ? "yes" : "no"],
     ["Socii Wants To Talk", state.peerPresence.wantsToTalk ? "yes" : "no"],
     ["Unread Note", getUnreadNote() ? "yes" : "no"],
@@ -439,9 +385,9 @@ function refreshDebugState() {
 }
 
 function refreshUi() {
-  const customNoteValue = customNoteInput.value.trim();
+  const noteDraftValue = state.noteDraft.trim();
   const partnerStatus = getPartnerStatusModel();
-  const localSilent = state.localPresence.silentMode;
+  const activeRole = state.role || roleSelect.value;
   const orbActionLabel = !state.joined
     ? "Join Socii to activate the orb"
     : state.callMode.active
@@ -452,58 +398,34 @@ function refreshUi() {
           ? "Cancel your talk request"
           : "Tell your Socii you want to talk";
 
-  applyRoleTheme(state.role || roleSelect.value);
-  silentModeButton.disabled = !state.joined;
-  silentModeButton.textContent = localSilent ? "Turn Silent Mode Off" : "Turn Silent Mode On";
-  toggleKaomojiButton.disabled = !state.joined;
-  toggleKaomojiButton.textContent = state.kaomojiTrayOpen ? "Hide Kaomojis" : "Show Kaomojis";
-  kaomojiRow.classList.toggle("is-hidden", !state.kaomojiTrayOpen);
+  applyRoleTheme(activeRole);
 
   for (const button of kaomojiButtons) {
     button.disabled = !state.joined;
+    button.classList.toggle("is-selected", button.dataset.kaomoji === state.noteDraft);
   }
 
-  customNoteInput.disabled = !state.joined;
-  sendNoteButton.disabled = !state.joined || !customNoteValue || customNoteValue.length > NOTE_MAX_LENGTH;
-  markNoteReadButton.disabled = !state.joined || !state.latestReceivedNote || state.latestReceivedNote.read;
+  kaomojiRow.classList.toggle("is-disabled", !state.joined);
+  noteComposerDisplay.textContent = state.latestReceivedNote?.content || "";
+  noteComposerDisplay.classList.toggle("is-empty", !state.latestReceivedNote?.content);
+  noteComposerDisplay.classList.toggle("is-unread", Boolean(state.latestReceivedNote && !state.latestReceivedNote.read));
+  sendNoteButton.disabled = !state.joined || !noteDraftValue || noteDraftValue.length > NOTE_MAX_LENGTH;
+  clearNoteButton.disabled = !state.joined || !state.noteDraft;
   partnerOrbButton.disabled = !state.joined;
   partnerOrbButton.setAttribute("aria-label", orbActionLabel);
   partnerOrbButton.title = orbActionLabel;
-
-  localSilentIndicator.textContent = localSilent ? "Local: silent mode on" : "Local: available";
-  localSilentIndicator.classList.toggle("is-active", localSilent);
-  peerSilentIndicator.textContent = state.peerPresence.online
-    ? state.peerPresence.silentMode
-      ? "Socii: silent mode on"
-      : "Socii: available"
-    : "Socii: offline";
-  peerSilentIndicator.classList.toggle("is-active", state.peerPresence.silentMode);
-  peerSilentIndicator.classList.toggle("is-peer", state.peerPresence.online);
+  debugPanel.classList.toggle("is-hidden", activeRole !== "javi");
 
   presenceSummary.textContent = getPresenceSummary();
   partnerOrb.className = `partner-orb ${partnerStatus.cssClass}`;
   partnerStatusLabel.textContent = partnerStatus.label;
-  partnerStatusDescription.textContent = partnerStatus.description;
-  partnerMeta.textContent = partnerStatus.meta;
 
   if (state.latestReceivedNote) {
-    latestReceivedNote.textContent = state.latestReceivedNote.content;
-    latestReceivedMeta.textContent = `${state.latestReceivedNote.type === "custom" ? "Custom note" : "Preset note"} from ${humanRole(
-      state.latestReceivedNote.senderRole
-    )} at ${formatTimestamp(state.latestReceivedNote.timestamp)}${state.latestReceivedNote.read ? " · Read" : " · Unread"}`;
+    latestReceivedMeta.textContent = `${formatTimestamp(state.latestReceivedNote.timestamp)}${
+      state.latestReceivedNote.read ? " · Read" : " · Unread"
+    }`;
   } else {
-    latestReceivedNote.textContent = "None yet";
-    latestReceivedMeta.textContent = "Unread notes from your Socii will appear here.";
-  }
-
-  if (state.latestSentNote) {
-    latestSentNote.textContent = state.latestSentNote.content;
-    latestSentMeta.textContent = `${state.latestSentNote.type === "custom" ? "Custom note" : "Preset note"} sent at ${formatTimestamp(
-      state.latestSentNote.timestamp
-    )}${state.latestSentNote.read ? ` · Read at ${formatTimestamp(state.latestSentNote.readAt)}` : " · Waiting on your Socii"}`;
-  } else {
-    latestSentNote.textContent = "None yet";
-    latestSentMeta.textContent = "Your latest outgoing note will appear here.";
+    latestReceivedMeta.textContent = "";
   }
 
   roleSelect.disabled = state.joined || state.joinInProgress;
@@ -592,7 +514,7 @@ function resetRoomState() {
     active: false,
     activatedAt: null,
   };
-  state.kaomojiTrayOpen = false;
+  state.noteDraft = "";
   state.localPresence = createPresenceState();
   state.peerPresence = createPresenceState();
   state.latestReceivedNote = null;
@@ -784,7 +706,6 @@ async function handleServerMessage(message) {
       state.peerPresence = {
         ...state.peerPresence,
         online: false,
-        silentMode: false,
         wantsToTalk: false,
         speaking: false,
       };
@@ -852,9 +773,7 @@ async function handleServerMessage(message) {
     }
     case "want-to-talk": {
       setStatus(
-        state.localPresence.silentMode
-          ? "Your Socii wants to talk. Silent mode keeps the signal visual only, so use the orb when you are ready."
-          : "Your Socii wants to talk. Tap the orb when you are ready to acknowledge.",
+        "Your Socii wants to talk. Tap the orb when you are ready to acknowledge.",
         "success"
       );
       break;
@@ -882,22 +801,8 @@ async function handleServerMessage(message) {
       setStatus("Open call ended. The orb is back in ambient mode.", "success");
       break;
     }
-    case "silent-mode-update": {
-      setStatus(
-        message.enabled
-          ? "Your Socii turned silent mode on. Signals remain visual."
-          : "Your Socii turned silent mode off.",
-        "success"
-      );
-      break;
-    }
     case "note-send": {
-      setStatus(
-        state.localPresence.silentMode
-          ? "A new note arrived. Silent mode keeps the notification visual only."
-          : "Your Socii left you a note.",
-        "success"
-      );
+      setStatus("Your Socii left you a note.", "success");
       break;
     }
     case "note-read": {
@@ -1106,25 +1011,6 @@ function handleOrbAction() {
   sendWantToTalk();
 }
 
-function toggleSilentMode() {
-  if (!state.joined) {
-    return;
-  }
-
-  const enabled = !state.localPresence.silentMode;
-  state.localPresence.silentMode = enabled;
-  refreshUi();
-
-  if (!sendTimedEvent("silent-mode-update", { enabled })) {
-    state.localPresence.silentMode = !enabled;
-    refreshUi();
-    setStatus("Could not update silent mode because signaling is disconnected.", "error");
-    return;
-  }
-
-  setStatus(enabled ? "Silent mode is on. Presence stays visual-only." : "Silent mode is off.", "success");
-}
-
 function sendNote(content, noteType) {
   if (!state.joined) {
     return;
@@ -1167,7 +1053,7 @@ function sendNote(content, noteType) {
     return;
   }
 
-  customNoteInput.value = "";
+  state.noteDraft = "";
   refreshUi();
   setStatus("Note sent.", "success");
 }
@@ -1177,10 +1063,16 @@ function insertKaomoji(kaomoji) {
     return;
   }
 
-  const current = customNoteInput.value.trimEnd();
-  const next = current ? `${current} ${kaomoji}` : kaomoji;
-  customNoteInput.value = next.slice(0, NOTE_MAX_LENGTH);
-  customNoteInput.focus();
+  state.noteDraft = kaomoji.slice(0, NOTE_MAX_LENGTH);
+  refreshUi();
+}
+
+function clearNoteDraft() {
+  if (!state.joined) {
+    return;
+  }
+
+  state.noteDraft = "";
   refreshUi();
 }
 
@@ -1222,15 +1114,6 @@ partnerOrbButton.addEventListener("click", () => {
   handleOrbAction();
 });
 
-silentModeButton.addEventListener("click", () => {
-  toggleSilentMode();
-});
-
-toggleKaomojiButton.addEventListener("click", () => {
-  state.kaomojiTrayOpen = !state.kaomojiTrayOpen;
-  refreshUi();
-});
-
 for (const button of kaomojiButtons) {
   button.addEventListener("click", () => {
     insertKaomoji(button.dataset.kaomoji || "");
@@ -1238,21 +1121,14 @@ for (const button of kaomojiButtons) {
 }
 
 sendNoteButton.addEventListener("click", () => {
-  sendNote(customNoteInput.value, "custom");
+  sendNote(state.noteDraft, "kaomoji");
 });
 
-customNoteInput.addEventListener("input", () => {
-  refreshUi();
+clearNoteButton.addEventListener("click", () => {
+  clearNoteDraft();
 });
 
-customNoteInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-    event.preventDefault();
-    sendNote(customNoteInput.value, "custom");
-  }
-});
-
-markNoteReadButton.addEventListener("click", () => {
+noteComposerDisplay.addEventListener("click", () => {
   markLatestNoteAsRead();
 });
 

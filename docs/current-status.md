@@ -11,7 +11,7 @@ The current app is a browser-based presence plus push-to-stream MVP with:
 - paired identities named `Javi` and `Sofi`
 - one WebRTC audio connection per shared Socii link
 - half-duplex push-to-talk floor control managed by the server
-- presence sync for want-to-talk, silent mode, and notes
+- presence sync for want-to-talk and notes
 - a browser simulation of the future Socii orb/status behavior
 - in-memory session and peer state
 
@@ -41,7 +41,6 @@ The current server in [server.js](/Users/javier/Socii/server.js:1) supports:
   - `want-to-talk`
   - `cancel-want-to-talk`
   - `ack-want-to-talk`
-  - `silent-mode-update`
   - `note-send`
   - `note-read`
   - `presence-sync`
@@ -56,12 +55,8 @@ The current client in [public/index.html](/Users/javier/Socii/public/index.html:
 - role selector
 - Join Socii button
 - one large simulated Socii orb
-- silent mode toggle
-- custom note text box
-- optional kaomoji tray with quick insert chips
-- latest received note display
-- latest sent note display
-- mark-as-read button
+- kaomoji note buttons
+- received note display
 - remote audio playback
 - debug state panel
 - Resume Audio button for Safari playback issues
@@ -77,7 +72,6 @@ Client behavior currently implemented:
 - derives a single Socii display status for the orb and its supporting text
 - supports persistent ambient want-to-talk signals
 - escalates an acknowledged want-to-talk signal into a full live open call
-- supports silent/do-not-disturb mode sync
 - supports custom notes with optional kaomoji insertion
 - supports unread/read note state
 - enables both microphones when open-call mode becomes active
@@ -119,17 +113,15 @@ Once joined:
 - tap the orb again to cancel your own request
 - tap the orb when your Socii has requested a talk to acknowledge and open the call
 - tap the orb during an open call to end it
-- tap `Turn Silent Mode On` to stay present but visual-only
-- type a short custom note
-- optionally open the kaomoji tray and tap a kaomoji chip to append it to the note
-- tap `Mark as Read` when you have seen the latest incoming note
+- tap a kaomoji to stage it for send
+- tap `Send Note` to send it
+- tap the received note surface to mark it as read
 
 The orb and its supporting text will update to reflect:
 
 - offline
 - online
 - idle
-- silent mode
 - wants to talk
 - message waiting
 - speaking
@@ -171,7 +163,6 @@ The orb and its supporting text will update to reflect:
 - The shared Socii link cannot exceed two peers.
 - Ambient signaling is half-duplex, but an acknowledged talk request escalates into a full two-way open call.
 - Want-to-talk signals can stay pending even if the peer is not currently online.
-- Silent mode affects passive notifications only, not intentional open-call use.
 - Notes are stored only in in-memory session state and last until the session disappears.
 - The orb is the main interaction surface for want-to-talk, acknowledgement, cancellation, and ending a call.
 - The mic remains muted until the shared session enters open-call mode.
@@ -199,7 +190,6 @@ The orb and its supporting text will update to reflect:
   - peer connection state
   - current floor holder
   - whether the local mic is enabled
-  - local and peer silent mode
   - local and peer want-to-talk state
   - unread note state
 

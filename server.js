@@ -15,7 +15,6 @@ const PRESENCE_EVENT_TYPES = new Set([
   "cancel-want-to-talk",
   "ack-want-to-talk",
   "open-call-end",
-  "silent-mode-update",
   "note-send",
   "note-read",
 ]);
@@ -44,7 +43,6 @@ function normalizeTimestamp(value) {
 function createPresenceState() {
   return {
     online: false,
-    silentMode: false,
     wantsToTalk: false,
     messageWaiting: false,
     speaking: false,
@@ -235,7 +233,6 @@ function cleanupPeer(ws) {
 
     updatePresenceState(room.presenceByRole[ws.role], {
       online: false,
-      silentMode: false,
       wantsToTalk: false,
       speaking: false,
     });
@@ -304,7 +301,6 @@ function handleJoinRoom(ws, message) {
 
   updatePresenceState(room.presenceByRole[role], {
     online: true,
-    silentMode: false,
     wantsToTalk: false,
     speaking: room.floorHolder === role,
   });
@@ -523,26 +519,6 @@ function handlePresenceEvent(ws, message) {
         timestamp,
       });
     }
-    return;
-  }
-
-  if (message.type === "silent-mode-update") {
-    if (typeof message.enabled !== "boolean") {
-      sendError(ws, "invalid-message", "silent-mode-update requires an enabled boolean.");
-      return;
-    }
-
-    updatePresenceState(room.presenceByRole[role], {
-      silentMode: message.enabled,
-    });
-    forwardToPeer(room, role, {
-      type: "silent-mode-update",
-      roomId: ws.roomId,
-      sourceRole: role,
-      enabled: message.enabled,
-      timestamp,
-    });
-    sendPresenceSync(ws.roomId);
     return;
   }
 
